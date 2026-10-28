@@ -1,0 +1,309 @@
+{
+  "info": {
+    "_postman_id": "b1f83c12-3b2d-4f76-8f3a-14d8721c5b89",
+    "name": "TaskFlow - Task & Productivity API",
+    "description": "Comprehensive Postman test collection for TaskFlow MERN Stack REST API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5000/api",
+      "type": "string"
+    },
+    {
+      "key": "jwt_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "task_id",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Health Check",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/health",
+          "host": ["{{baseUrl}}"],
+          "path": ["health"]
+        }
+      }
+    },
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "1. Register User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.token) {",
+                  "    pm.collectionVariables.set('jwt_token', json.token);",
+                  "    console.log('Saved JWT Token to collection variables');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"John Doe\",\n  \"email\": \"john@example.com\",\n  \"password\": \"Password123!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "register"]
+            }
+          }
+        },
+        {
+          "name": "2. Login User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.token) {",
+                  "    pm.collectionVariables.set('jwt_token', json.token);",
+                  "    console.log('Updated JWT Token in collection variables');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"john@example.com\",\n  \"password\": \"Password123!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "3. Get Current User (Me)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "me"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "User Profile",
+      "item": [
+        {
+          "name": "Update User Profile",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Johnathan Doe\",\n  \"bio\": \"Senior Developer & Productivity Enthusiast\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users/profile",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "profile"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Tasks",
+      "item": [
+        {
+          "name": "1. Create Task",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.task && json.task._id) {",
+                  "    pm.collectionVariables.set('task_id', json.task._id);",
+                  "    console.log('Saved task_id to variables:', json.task._id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Implement Unit Tests for Express API\",\n  \"description\": \"Write comprehensive tests using Jest and Supertest\",\n  \"status\": \"pending\",\n  \"priority\": \"high\",\n  \"dueDate\": \"2026-11-15T18:00:00.000Z\",\n  \"tags\": [\"backend\", \"tests\", \"jest\"]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/tasks",
+              "host": ["{{baseUrl}}"],
+              "path": ["tasks"]
+            }
+          }
+        },
+        {
+          "name": "2. Get All Tasks",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/tasks?status=all&priority=all&sortBy=createdAt&order=desc&page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["tasks"],
+              "query": [
+                { "key": "status", "value": "all" },
+                { "key": "priority", "value": "all" },
+                { "key": "sortBy", "value": "createdAt" },
+                { "key": "order", "value": "desc" },
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "10" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "3. Get Task By ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/tasks/{{task_id}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["tasks", "{{task_id}}"]
+            }
+          }
+        },
+        {
+          "name": "4. Update Task",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"in-progress\",\n  \"priority\": \"medium\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/tasks/{{task_id}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["tasks", "{{task_id}}"]
+            }
+          }
+        },
+        {
+          "name": "5. Get Task Dashboard Statistics",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/tasks/stats",
+              "host": ["{{baseUrl}}"],
+              "path": ["tasks", "stats"]
+            }
+          }
+        },
+        {
+          "name": "6. Delete Task",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/tasks/{{task_id}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["tasks", "{{task_id}}"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
