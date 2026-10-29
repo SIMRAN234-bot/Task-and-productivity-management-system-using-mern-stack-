@@ -22,22 +22,28 @@ const generateToken = (id) => {
 const registerUser = async (req, res, next) => {
   try {
     const { name, email, password } = req.body;
+    const sanitizedEmail = email.toLowerCase().trim();
+
+    console.log(`📝 [Registration Request] Received registration for: ${sanitizedEmail}`);
 
     // Check if user already exists
-    const existingUser = await User.findOne({ email: email.toLowerCase().trim() });
+    const existingUser = await User.findOne({ email: sanitizedEmail });
     if (existingUser) {
+      console.warn(`⚠️ [Registration Duplicate] User already exists with email: ${sanitizedEmail}`);
       return res.status(400).json({
         success: false,
-        message: 'A user with this email address already exists',
+        message: 'A user with this email address already exists. Please sign in or use a different email.',
       });
     }
 
-    // Create user in database (pre-save hook hashes password)
+    // Create user in database (pre-save hook hashes password with bcrypt)
     const user = await User.create({
       name: name.trim(),
-      email: email.toLowerCase().trim(),
+      email: sanitizedEmail,
       password,
     });
+
+    console.log(`✅ [Registration Success] User created successfully: ${sanitizedEmail} (ID: ${user._id})`);
 
     const token = generateToken(user._id);
 
@@ -48,6 +54,7 @@ const registerUser = async (req, res, next) => {
       user: user.toSafeObject(),
     });
   } catch (error) {
+    console.error(`❌ [Registration Error] Failed registering user:`, error.message);
     next(error);
   }
 };
@@ -60,10 +67,14 @@ const registerUser = async (req, res, next) => {
 const loginUser = async (req, res, next) => {
   try {
     const { email, password } = req.body;
+    const sanitizedEmail = email.toLowerCase().trim();
+
+    console.log(`🔑 [Login Request] Attempting login for: ${sanitizedEmail}`);
 
     // Retrieve user including hashed password for verification
-    const user = await User.findOne({ email: email.toLowerCase().trim() }).select('+password');
+    const user = await User.findOne({ email: sanitizedEmail }).select('+password');
     if (!user) {
+      console.warn(`⚠️ [Login Failed] User not found: ${sanitizedEmail}`);
       return res.status(401).json({
         success: false,
         message: 'Invalid email or password',
@@ -73,11 +84,14 @@ const loginUser = async (req, res, next) => {
     // Verify password with bcrypt
     const isMatch = await user.matchPassword(password);
     if (!isMatch) {
+      console.warn(`⚠️ [Login Failed] Password mismatch for: ${sanitizedEmail}`);
       return res.status(401).json({
         success: false,
         message: 'Invalid email or password',
       });
     }
+
+    console.log(`✅ [Login Success] User authenticated: ${sanitizedEmail} (ID: ${user._id})`);
 
     const token = generateToken(user._id);
 
@@ -88,6 +102,7 @@ const loginUser = async (req, res, next) => {
       user: user.toSafeObject(),
     });
   } catch (error) {
+    console.error(`❌ [Login Error] ${error.message}`);
     next(error);
   }
 };

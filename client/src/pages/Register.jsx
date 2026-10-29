@@ -48,10 +48,15 @@ const Register = () => {
       await register({ name, email, password });
       navigate('/dashboard');
     } catch (err) {
-      setError(
-        err.response?.data?.message ||
-        'Registration failed. Please check your details and try again.'
-      );
+      let message = 'Registration failed. Please check your details and try again.';
+      if (err.response?.data?.message) {
+        message = err.response.data.message;
+      } else if (err.code === 'ECONNABORTED' || err.message?.includes('timeout')) {
+        message = 'Server request timed out. Please check that the backend server is running and responsive.';
+      } else if (err.message === 'Network Error' || !err.response) {
+        message = 'Cannot connect to the TaskFlow backend API server. Please ensure the Express server is running on http://localhost:5000.';
+      }
+      setError(message);
     } finally {
       setSubmitting(false);
     }
