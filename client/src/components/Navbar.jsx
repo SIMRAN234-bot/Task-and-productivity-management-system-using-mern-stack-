@@ -1,12 +1,16 @@
-import React, { useState } from 'react';
-import { CheckSquare, LogOut, Menu, User, X } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { CheckSquare, LogOut, Menu, Bell } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { taskService } from '../services/taskService';
 
 const Navbar = ({ onToggleSidebar }) => {
   const { user, logout, isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [notifications, setNotifications] = useState([]);
+  const [bellOpen, setBellOpen] = useState(false);
+  useEffect(() => { if (isAuthenticated) taskService.getNotifications().then(r => setNotifications(r.notifications || [])).catch(() => {}); }, [isAuthenticated]);
 
   const handleLogout = () => {
     logout();
@@ -82,6 +86,7 @@ const Navbar = ({ onToggleSidebar }) => {
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
           {isAuthenticated ? (
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+              <div style={{ position: 'relative' }}><button className="btn btn-secondary btn-sm" aria-label="Notifications" onClick={() => setBellOpen(v => !v)}><Bell size={17}/>{notifications.some(n => !n.read) && <span className="notification-dot"/>}</button>{bellOpen && <div className="notification-menu"><strong>Deadlines</strong>{notifications.length ? notifications.map(n => <button key={n._id} className="notification-item" onClick={async () => { if (!n.read) { await taskService.markNotificationRead(n._id); setNotifications(xs => xs.map(x => x._id === n._id ? {...x, read:true} : x)); } if (n.task?._id) navigate(`/tasks/${n.task._id}/edit`); setBellOpen(false); }}><span className={`badge badge-${n.kind === 'overdue' ? 'high' : 'medium'}`}>{n.kind}</span><span>{n.task?.title || 'Task deadline'}</span></button>) : <small>No upcoming reminders</small>}</div>}</div>
               <Link
                 to="/profile"
                 style={{

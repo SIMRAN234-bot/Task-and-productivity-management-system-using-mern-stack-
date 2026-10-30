@@ -7,6 +7,7 @@ const mongoose = require('mongoose');
 const authRoutes = require('./routes/authRoutes');
 const taskRoutes = require('./routes/taskRoutes');
 const userRoutes = require('./routes/userRoutes');
+const notificationRoutes = require('./routes/notificationRoutes');
 
 // Import middleware
 const { notFound, errorHandler } = require('./middleware/errorMiddleware');
@@ -117,6 +118,7 @@ app.get('/', (req, res) => {
 app.use('/api/auth', checkDatabaseReadiness, authRoutes);
 app.use('/api/tasks', checkDatabaseReadiness, taskRoutes);
 app.use('/api/users', checkDatabaseReadiness, userRoutes);
+app.use('/api/notifications', checkDatabaseReadiness, notificationRoutes);
 
 // ==========================================
 // Error Handling

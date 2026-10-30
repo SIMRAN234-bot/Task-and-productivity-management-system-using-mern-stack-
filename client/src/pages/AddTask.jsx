@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, Calendar, FileText, PlusCircle, Tag } from 'lucide-react';
 import { taskService } from '../services/taskService';
 import AlertMessage from '../components/AlertMessage';
@@ -18,6 +18,10 @@ const AddTask = () => {
   const [error, setError] = useState('');
   const titleInputRef = useRef(null);
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const [subtasks, setSubtasks] = useState([]);
+  const [subtaskDraft, setSubtaskDraft] = useState('');
+  useEffect(() => { const dueDate = searchParams.get('dueDate'); if (dueDate) setFormData(p => ({...p, dueDate})); }, [searchParams]);
 
   // Focus title input on mount
   useEffect(() => {
@@ -48,6 +52,7 @@ const AddTask = () => {
         priority: formData.priority,
         dueDate: formData.dueDate ? new Date(formData.dueDate).toISOString() : null,
         tags: formData.tags,
+        subtasks: subtasks.map(title => ({ title, completed: false })),
       });
 
       navigate('/tasks');
@@ -189,6 +194,8 @@ const AddTask = () => {
             </div>
           </div>
 
+          {/* Tags */}
+          <div className="form-group"><label className="form-label">Checklist</label><div className="inline-form"><input className="form-control" value={subtaskDraft} onChange={e=>setSubtaskDraft(e.target.value)} placeholder="Add a checklist item"/><button type="button" className="btn btn-secondary" onClick={()=>{if(subtaskDraft.trim()){setSubtasks(s=>[...s,subtaskDraft.trim()]);setSubtaskDraft('')}}}>Add</button></div>{subtasks.map((s,i)=><div className="checklist-line" key={i}>☐ {s}<button type="button" onClick={()=>setSubtasks(xs=>xs.filter((_,n)=>n!==i))}>Remove</button></div>)}</div>
           {/* Tags */}
           <div className="form-group">
             <label className="form-label" htmlFor="tags">

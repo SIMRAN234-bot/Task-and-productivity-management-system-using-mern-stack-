@@ -38,6 +38,10 @@ const taskSchema = new mongoose.Schema(
       type: [String],
       default: [],
     },
+    subtasks: [{
+      title: { type: String, required: true, trim: true, maxlength: 160 },
+      completed: { type: Boolean, default: false },
+    }],
     user: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
@@ -55,6 +59,7 @@ taskSchema.index({ user: 1, status: 1 });
 taskSchema.index({ user: 1, priority: 1 });
 taskSchema.index({ user: 1, dueDate: 1 });
 taskSchema.index({ user: 1, createdAt: -1 });
+taskSchema.index({ user: 1, 'subtasks._id': 1 });
 
 const Task = mongoose.model('Task', taskSchema);
 module.exports = Task;

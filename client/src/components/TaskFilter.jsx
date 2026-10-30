@@ -99,6 +99,9 @@ const TaskFilter = ({ filters, setFilters, onReset }) => {
       </div>
 
       {/* Sort By */}
+      <input aria-label="Due from" type="date" className="form-control date-filter" value={filters.dueFrom || ''} onChange={e=>setFilters(p=>({...p,dueFrom:e.target.value,page:1}))}/>
+      <input aria-label="Due to" type="date" className="form-control date-filter" value={filters.dueTo || ''} onChange={e=>setFilters(p=>({...p,dueTo:e.target.value,page:1}))}/>
+      {/* Sort By */}
       <div style={{ flex: '0 1 180px' }}>
         <select
           className="form-control"

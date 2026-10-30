@@ -15,6 +15,7 @@ import StatCard from '../components/StatCard';
 import LoadingSpinner from '../components/LoadingSpinner';
 import AlertMessage from '../components/AlertMessage';
 import EmptyState from '../components/EmptyState';
+import { ResponsiveContainer, BarChart, Bar, CartesianGrid, XAxis, YAxis, Tooltip, AreaChart, Area } from 'recharts';
 
 const Dashboard = () => {
   const { user } = useAuth();
@@ -54,6 +55,7 @@ const Dashboard = () => {
     completionRate = 0,
     priorityBreakdown = { low: 0, medium: 0, high: 0 },
     recentActivity = [],
+    weeklyCompletion = [], monthlyProductivity = [], upcomingTasks = [],
   } = stats || {};
 
   return (
@@ -261,6 +263,9 @@ const Dashboard = () => {
         </div>
       </div>
 
+      {/* Recent Activity Table / List */}
+      <div className="analytics-grid"><section className="card"><h3>Weekly task completion</h3><p className="page-subtitle">Tasks completed over the last seven days</p><div className="chart-frame"><ResponsiveContainer width="100%" height="100%"><BarChart data={weeklyCompletion}><CartesianGrid strokeDasharray="3 3" vertical={false}/><XAxis dataKey="_id" tickFormatter={v=>new Date(`${v}T00:00:00`).toLocaleDateString(undefined,{weekday:'short'})}/><YAxis allowDecimals={false}/><Tooltip/><Bar dataKey="count" fill="#4f46e5" radius={[5,5,0,0]}/></BarChart></ResponsiveContainer></div></section><section className="card"><h3>Monthly productivity</h3><p className="page-subtitle">Completed tasks this month</p><div className="chart-frame"><ResponsiveContainer width="100%" height="100%"><AreaChart data={monthlyProductivity}><CartesianGrid strokeDasharray="3 3" vertical={false}/><XAxis dataKey="_id" tickFormatter={v=>new Date(`${v}T00:00:00`).getDate()}/><YAxis allowDecimals={false}/><Tooltip/><Area dataKey="count" stroke="#4f46e5" fill="#c7d2fe"/></AreaChart></ResponsiveContainer></div></section></div>
+      <section className="card upcoming-panel"><div className="page-header"><div><h3>Upcoming deadlines</h3><p className="page-subtitle">Your next tasks that need attention</p></div><Link to="/calendar">Open calendar →</Link></div>{upcomingTasks.length ? upcomingTasks.map(t=><Link key={t._id} className="deadline-row" to={`/tasks/${t._id}/edit`}><span className={`badge badge-${t.priority}`}>{t.priority}</span><strong>{t.title}</strong><span>{new Date(t.dueDate).toLocaleDateString()}</span></Link>) : <p className="page-subtitle">Nothing due soon. You’re all caught up.</p>}</section>
       {/* Recent Activity Table / List */}
       <div className="card">
         <div

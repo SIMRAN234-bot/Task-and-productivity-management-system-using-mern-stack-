@@ -188,6 +188,7 @@ describe('=== TaskFlow API Test Suite ===', () => {
           priority: 'high',
           dueDate: new Date(Date.now() + 86400000).toISOString(),
           tags: ['college', 'mern', 'react'],
+          subtasks: [{ title: 'Build task schema', completed: false }, { title: 'Wire calendar API', completed: true }],
         });
 
       expect(res.status).toBe(201);
@@ -195,6 +196,7 @@ describe('=== TaskFlow API Test Suite ===', () => {
       expect(res.body.task.title).toBe('Complete MERN Project Milestone');
       expect(res.body.task.priority).toBe('high');
       expect(res.body.task.tags).toContain('mern');
+      expect(res.body.task.subtasks).toHaveLength(2);
       expect(res.body.task.user.toString()).toBe(user1Id.toString());
 
       user1TaskId = res.body.task._id;
@@ -284,6 +286,32 @@ describe('=== TaskFlow API Test Suite ===', () => {
       expect(res.body.stats.inProgressTasks).toBe(1);
       expect(res.body.stats.completionRate).toBe(50);
       expect(res.body.stats.priorityBreakdown).toBeDefined();
+      expect(res.body.stats.weeklyCompletion).toBeDefined();
+      expect(res.body.stats.monthlyProductivity).toBeDefined();
+    });
+
+    it('GET /api/tasks should filter by due date and persist checklist changes', async () => {
+      const future = new Date(Date.now() + 86400000);
+      const res = await request(app).get(`/api/tasks?dueFrom=${new Date().toISOString().slice(0,10)}`)
+        .set('Authorization', `Bearer ${user1Token}`);
+      expect(res.status).toBe(200);
+      expect(res.body.tasks.some(t => t._id === user1TaskId)).toBe(true);
+      const update = await request(app).put(`/api/tasks/${user1TaskId}`)
+        .set('Authorization', `Bearer ${user1Token}`).send({ subtasks: [{ title: 'Persisted item', completed: true }] });
+      expect(update.status).toBe(200);
+      expect(update.body.task.subtasks[0].completed).toBe(true);
+      expect(future).toBeInstanceOf(Date);
+    });
+
+    it('GET /api/notifications creates user-scoped deadline reminders and supports read state', async () => {
+      const res = await request(app).get('/api/notifications').set('Authorization', `Bearer ${user1Token}`);
+      expect(res.status).toBe(200);
+      expect(res.body.notifications.length).toBeGreaterThan(0);
+      const id = res.body.notifications[0]._id;
+      const marked = await request(app).put(`/api/notifications/${id}/read`).set('Authorization', `Bearer ${user1Token}`);
+      expect(marked.status).toBe(200);
+      const isolated = await request(app).put(`/api/notifications/${id}/read`).set('Authorization', `Bearer ${user2Token}`);
+      expect(isolated.status).toBe(404);
     });
   });
 

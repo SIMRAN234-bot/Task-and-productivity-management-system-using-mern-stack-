@@ -1,8 +1,9 @@
 import React from 'react';
+import { GlowCard } from './ui/SpotlightCard';
 
 const StatCard = ({ title, value, icon: Icon, color = 'var(--primary)', subtitle }) => {
   return (
-    <div className="card" style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
+    <GlowCard glowColor="purple" customSize className="spotlight-stat-card">
       <div
         style={{
           width: '52px',
@@ -31,7 +32,7 @@ const StatCard = ({ title, value, icon: Icon, color = 'var(--primary)', subtitle
           </p>
         )}
       </div>
-    </div>
+    </GlowCard>
   );
 };
 

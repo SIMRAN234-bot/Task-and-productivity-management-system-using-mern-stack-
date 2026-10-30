@@ -21,6 +21,8 @@ const EditTask = () => {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [subtasks, setSubtasks] = useState([]);
+  const [subtaskDraft, setSubtaskDraft] = useState('');
 
   useEffect(() => {
     const fetchTask = async () => {
@@ -43,6 +45,7 @@ const EditTask = () => {
           dueDate: formattedDueDate,
           tags: Array.isArray(task.tags) ? task.tags.join(', ') : '',
         });
+        setSubtasks(task.subtasks || []);
       } catch (err) {
         setError(
           err.response?.data?.message ||
@@ -78,6 +81,7 @@ const EditTask = () => {
         priority: formData.priority,
         dueDate: formData.dueDate ? new Date(formData.dueDate).toISOString() : null,
         tags: formData.tags,
+        subtasks,
       });
 
       navigate('/tasks');
@@ -217,6 +221,8 @@ const EditTask = () => {
             </div>
           </div>
 
+          {/* Tags */}
+          <div className="form-group"><label className="form-label">Checklist {subtasks.length>0&&<small> · {Math.round(subtasks.filter(s=>s.completed).length/subtasks.length*100)}% complete</small>}</label><div className="inline-form"><input className="form-control" value={subtaskDraft} onChange={e=>setSubtaskDraft(e.target.value)} placeholder="Add a checklist item"/><button type="button" className="btn btn-secondary" onClick={()=>{if(subtaskDraft.trim()){setSubtasks(s=>[...s,{title:subtaskDraft.trim(),completed:false}]);setSubtaskDraft('')}}}>Add</button></div>{subtasks.map((s,i)=><label className="checklist-line" key={s._id||i}><input type="checkbox" checked={s.completed} onChange={e=>setSubtasks(xs=>xs.map((v,n)=>n===i?{...v,completed:e.target.checked}:v))}/><span className={s.completed?'done':''}>{s.title}</span><button type="button" onClick={()=>setSubtasks(xs=>xs.filter((_,n)=>n!==i))}>Remove</button></label>)}</div>
           {/* Tags */}
           <div className="form-group">
             <label className="form-label" htmlFor="tags">

@@ -8,7 +8,7 @@ const Task = require('../models/Task');
  */
 const getTasks = async (req, res, next) => {
   try {
-    const { search, status, priority, sortBy = 'createdAt', order = 'desc', page = 1, limit = 10 } = req.query;
+    const { search, status, priority, dueFrom, dueTo, sortBy = 'createdAt', order = 'desc', page = 1, limit = 10 } = req.query;
 
     // Strict user scoping: user can only query their own tasks
     const query = { user: req.user._id };
@@ -31,6 +31,11 @@ const getTasks = async (req, res, next) => {
     // Priority filter
     if (priority && priority !== 'all') {
       query.priority = priority;
+    }
+    if (dueFrom || dueTo) {
+      query.dueDate = {};
+      if (dueFrom) query.dueDate.$gte = new Date(dueFrom);
+      if (dueTo) { const end = new Date(dueTo); end.setHours(23,59,59,999); query.dueDate.$lte = end; }
     }
 
     // Pagination calculations
@@ -97,7 +102,7 @@ const getTaskById = async (req, res, next) => {
  */
 const createTask = async (req, res, next) => {
   try {
-    const { title, description, status, priority, dueDate, tags } = req.body;
+    const { title, description, status, priority, dueDate, tags, subtasks } = req.body;
 
     // Process tags into an array
     let processedTags = [];
@@ -114,6 +119,7 @@ const createTask = async (req, res, next) => {
       priority: priority || 'medium',
       dueDate: dueDate ? new Date(dueDate) : null,
       tags: processedTags,
+      subtasks: Array.isArray(subtasks) ? subtasks : [],
       user: req.user._id,
     });
 
@@ -146,12 +152,13 @@ const updateTask = async (req, res, next) => {
       });
     }
 
-    const { title, description, status, priority, dueDate, tags } = req.body;
+    const { title, description, status, priority, dueDate, tags, subtasks } = req.body;
 
     if (title !== undefined) task.title = title.trim();
     if (description !== undefined) task.description = description.trim();
     if (status !== undefined) task.status = status;
     if (priority !== undefined) task.priority = priority;
+    if (subtasks !== undefined) task.subtasks = subtasks;
     if (dueDate !== undefined) task.dueDate = dueDate ? new Date(dueDate) : null;
     if (tags !== undefined) {
       if (Array.isArray(tags)) {
@@ -214,7 +221,9 @@ const getTaskStats = async (req, res, next) => {
     const now = new Date();
 
     // Aggregation pipeline to calculate counts grouped by status and priority
-    const [statusStats, priorityStats, overdueCount, totalCount, recentTasks] = await Promise.all([
+    const weekStart = new Date(); weekStart.setDate(weekStart.getDate() - 6); weekStart.setHours(0,0,0,0);
+    const monthStart = new Date(); monthStart.setDate(1); monthStart.setHours(0,0,0,0);
+    const [statusStats, priorityStats, overdueCount, totalCount, recentTasks, weekDone, monthDone, upcomingTasks] = await Promise.all([
       // Group by status
       Task.aggregate([
         { $match: { user: userId } },
@@ -238,6 +247,9 @@ const getTaskStats = async (req, res, next) => {
         .sort({ updatedAt: -1 })
         .limit(5)
         .select('title status priority dueDate updatedAt'),
+      Task.aggregate([{ $match: { user: userId, status: 'completed', updatedAt: { $gte: weekStart } } }, { $group: { _id: { $dateToString: { format: '%Y-%m-%d', date: '$updatedAt' } }, count: { $sum: 1 } } }]),
+      Task.aggregate([{ $match: { user: userId, status: 'completed', updatedAt: { $gte: monthStart } } }, { $group: { _id: { $dateToString: { format: '%Y-%m-%d', date: '$updatedAt' } }, count: { $sum: 1 } } }, { $sort: { _id: 1 } }]),
+      Task.find({ user: userId, status: { $ne: 'completed' }, dueDate: { $gte: now } }).sort({ dueDate: 1 }).limit(8).select('title status priority dueDate'),
     ]);
 
     // Map aggregated results into clear dictionary
@@ -270,6 +282,9 @@ const getTaskStats = async (req, res, next) => {
         completionRate,
         priorityBreakdown: priorityMap,
         recentActivity: recentTasks,
+        weeklyCompletion: weekDone,
+        monthlyProductivity: monthDone,
+        upcomingTasks,
       },
     });
   } catch (error) {

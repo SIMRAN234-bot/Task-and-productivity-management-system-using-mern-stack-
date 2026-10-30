@@ -36,4 +36,6 @@ export const taskService = {
     const response = await api.get('/tasks/stats');
     return response.data;
   },
+  async getNotifications() { return (await api.get('/notifications')).data; },
+  async markNotificationRead(id) { return (await api.put(`/notifications/${id}/read`)).data; },
 };

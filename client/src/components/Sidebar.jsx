@@ -1,11 +1,13 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { CheckSquare, LayoutDashboard, ListTodo, PlusCircle, User, X } from 'lucide-react';
+import { CheckSquare, LayoutDashboard, ListTodo, PlusCircle, User, X, CalendarDays, Kanban } from 'lucide-react';
 
-const Sidebar = ({ isOpen, onClose }) => {
+const Sidebar = ({ isOpen, isCollapsed, onClose }) => {
   const navItems = [
     { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { to: '/tasks', label: 'All Tasks', icon: ListTodo },
+    { to: '/calendar', label: 'Calendar', icon: CalendarDays },
+    { to: '/board', label: 'Kanban Board', icon: Kanban },
     { to: '/tasks/new', label: 'Add Task', icon: PlusCircle },
     { to: '/profile', label: 'User Profile', icon: User },
   ];
@@ -29,7 +31,7 @@ const Sidebar = ({ isOpen, onClose }) => {
       {/* Sidebar container */}
       <aside
         style={{
-          width: '260px',
+          width: isCollapsed ? '78px' : '260px',
           background: '#ffffff',
           borderRight: '1px solid var(--border)',
           display: 'flex',
@@ -44,7 +46,7 @@ const Sidebar = ({ isOpen, onClose }) => {
           height: '100vh',
           flexShrink: 0,
         }}
-        className={isOpen ? 'sidebar-open' : 'sidebar-desktop'}
+        className={`${isOpen ? 'sidebar-open' : 'sidebar-desktop'} ${isCollapsed ? 'sidebar-collapsed' : ''}`}
       >
         {/* Brand header */}
         <div
@@ -69,7 +71,7 @@ const Sidebar = ({ isOpen, onClose }) => {
             >
               <CheckSquare size={18} />
             </div>
-            <span style={{ fontSize: '1.15rem', fontWeight: 800 }}>TaskFlow</span>
+            <span className="sidebar-brand-name" style={{ fontSize: '1.15rem', fontWeight: 800 }}>TaskFlow</span>
           </div>
 
           <button
@@ -91,7 +93,7 @@ const Sidebar = ({ isOpen, onClose }) => {
 
         {/* Navigation links */}
         <nav style={{ padding: '1.25rem 0.85rem', flex: 1 }}>
-          <p
+          <p className="sidebar-section-title"
             style={{
               fontSize: '0.75rem',
               fontWeight: 700,
@@ -137,7 +139,7 @@ const Sidebar = ({ isOpen, onClose }) => {
         </nav>
 
         {/* College Project Badge Footer */}
-        <div
+        <div className="sidebar-footer"
           style={{
             padding: '1.25rem',
             borderTop: '1px solid var(--border)',
