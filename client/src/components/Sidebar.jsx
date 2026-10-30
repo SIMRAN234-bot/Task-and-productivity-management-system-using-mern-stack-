@@ -138,23 +138,6 @@ const Sidebar = ({ isOpen, isCollapsed, onClose }) => {
           </div>
         </nav>
 
-        {/* College Project Badge Footer */}
-        <div className="sidebar-footer"
-          style={{
-            padding: '1.25rem',
-            borderTop: '1px solid var(--border)',
-            background: 'var(--bg-main)',
-            margin: '0.85rem',
-            borderRadius: 'var(--radius-md)',
-          }}
-        >
-          <p style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '0.2rem' }}>
-            TaskFlow v1.0.0
-          </p>
-          <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
-            MERN Stack College Project (CO3, CO4, CO5)
-          </p>
-        </div>
       </aside>
     </>
   );
